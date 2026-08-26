@@ -19,8 +19,10 @@ export class Vite extends Framework {
 		projectPath: string,
 		{ target = "cf" }: { target?: AutoConfigTarget } = {}
 	): boolean {
-		if (target !== "wrangler") {
-			return false;
+		if (target === "cf") {
+			if (!super.isConfigured(projectPath, { target })) {
+				return false;
+			}
 		}
 		if (!hasViteConfig(projectPath)) {
 			return false;

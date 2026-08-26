@@ -90,7 +90,7 @@ describe("runAutoConfig()", () => {
 			observability: { enabled: true },
 		});
 		expect(summary.buildConfig).toEqual({ assetsDirectory: "public" });
-		expect(summary.buildCommand).toBe("npm run build");
+		expect(summary.buildCommand).toBe("npx framework build");
 		expect(summary.deployCommand).toBe("npx cf deploy");
 		expect(summary.versionCommand).toBe("npx cf versions upload");
 		expect(readFileSync("cloudflare.config.ts", "utf8")).toContain(
@@ -102,14 +102,14 @@ describe("runAutoConfig()", () => {
 		expect(existsSync("wrangler.jsonc")).toBe(false);
 		expect(installWrangler).toHaveBeenCalledWith("npm", false);
 		expect(context.runCommand).toHaveBeenCalledWith(
-			"npm run build",
+			"npx framework build",
 			process.cwd(),
 			"[build]"
 		);
 		expect(JSON.parse(readFileSync("package.json", "utf8"))).toMatchObject({
 			scripts: {
 				build: "generate && vite build",
-				deploy: "npm run build && cf deploy --no-build",
+				deploy: "npx framework build && cf deploy --no-build",
 				preview: "cf dev",
 			},
 		});
@@ -226,6 +226,34 @@ describe("runAutoConfig()", () => {
 		expect(readFileSync("wrangler.config.ts", "utf8")).toContain(
 			'"assetsDirectory": "dist"'
 		);
+	});
+
+	it("preserves an existing Cloudflare config while repairing framework setup", async ({
+		expect,
+	}) => {
+		const existingConfig = "export default { name: 'existing' };\n";
+		await seed({
+			"cloudflare.config.ts": existingConfig,
+			"dist/index.html": "<h1>Hello World</h1>",
+		});
+
+		await runAutoConfig(
+			{
+				configured: false,
+				projectPath: process.cwd(),
+				workerName: "repaired-app",
+				framework: new Static({ id: "static", name: "Static" }),
+				outputDir: "dist",
+				packageManager: NpmPackageManager,
+			},
+			{
+				context: createMockContext(),
+				skipConfirmations: true,
+				runBuild: false,
+			}
+		);
+
+		expect(readFileSync("cloudflare.config.ts", "utf8")).toBe(existingConfig);
 	});
 
 	it("fails rather than overwriting existing Wrangler build configuration", async ({

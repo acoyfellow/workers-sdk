@@ -1,4 +1,6 @@
 import assert from "node:assert";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import semiver from "semiver";
 import { AutoConfigFrameworkConfigurationError } from "../errors";
 import { getInstalledPackageVersion } from "./utils/packages";
@@ -26,14 +28,18 @@ export abstract class Framework {
 	}
 
 	isConfigured(
-		_projectPath: string,
+		projectPath: string,
 		{
-			target: _target = "cf",
+			target = "cf",
 		}: {
 			target?: AutoConfigTarget;
 		} = {}
 	): boolean {
-		return false;
+		if (target !== "cf") {
+			return false;
+		}
+
+		return existsSync(resolve(projectPath, "cloudflare.config.ts"));
 	}
 
 	abstract configure(
