@@ -573,20 +573,14 @@ export async function buildOperationsSummary(
 	if (autoConfigDetails.packageJson) {
 		const scriptOverrides =
 			target === "wrangler" ? packageJsonScriptsOverrides : undefined;
-		const scriptBuildCommand =
-			target === "cf" ? projectCommands.build : autoConfigDetails.buildCommand;
-		const buildCommandPrefix = scriptBuildCommand
-			? `${scriptBuildCommand} && `
-			: "";
+		const buildCommandPrefix =
+			target === "wrangler" && autoConfigDetails.buildCommand
+				? `${autoConfigDetails.buildCommand} && `
+				: "";
 		summary.scripts = {
 			deploy:
-				scriptOverrides?.deploy ??
-				`${buildCommandPrefix}${target} deploy${
-					target === "cf" && projectCommands.build ? " --no-build" : ""
-				}`,
-			preview:
-				scriptOverrides?.preview ??
-				`${target === "wrangler" ? buildCommandPrefix : ""}${target} dev`,
+				scriptOverrides?.deploy ?? `${buildCommandPrefix}${target} deploy`,
+			preview: scriptOverrides?.preview ?? `${buildCommandPrefix}${target} dev`,
 		};
 
 		const containsServerSideCode =

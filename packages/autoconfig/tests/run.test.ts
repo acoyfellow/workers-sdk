@@ -109,7 +109,7 @@ describe("runAutoConfig()", () => {
 		expect(JSON.parse(readFileSync("package.json", "utf8"))).toMatchObject({
 			scripts: {
 				build: "generate && vite build",
-				deploy: "npx framework build && cf deploy --no-build",
+				deploy: "cf deploy",
 				preview: "cf dev",
 			},
 		});
